@@ -12,7 +12,7 @@ class RoundingMethod:
             return math.ceil(value * multiplier - 0.5) / multiplier
 
     @staticmethod
-    def result(value: Union[int, float]) -> Union[int, float]:
+    def result(value: float -> Union[int, float]:
         rounded_value = RoundingMethod.round_away_from_zero(value)
         if rounded_value == int(rounded_value):
             return int(rounded_value)
