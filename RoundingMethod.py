@@ -1,25 +1,20 @@
 import math
+from typing import Union
 
-class Rounding:
-    def __int__(self, value, decimals=0):
-        self.value = value
-        self.decimals = decimals
 
-    def round_half_up(self, n, decimals):  # solution from: https://realpython.com/python-rounding/,
+class RoundingMethod:
+    @staticmethod
+    def round_away_from_zero(value: Union[int, float], decimals: int = 14) -> float:
         multiplier = 10 ** decimals
-        return math.floor(n * multiplier + 0.5) / multiplier
-
-    def round_half_down(self, n, decimals):
-        multiplier = 10 ** decimals
-        return math.ceil(n * multiplier - 0.5) / multiplier
-
-    def result(self, n, decimals=14):
-        result = 0
-        if n <= 0:
-            result += self.round_half_down(n, decimals)
+        if value > 0:
+            return math.floor(value * multiplier + 0.5) / multiplier
         else:
-            result += self.round_half_up(n, decimals)
-        if result == int(result):
-            return str(int(result))
+            return math.ceil(value * multiplier - 0.5) / multiplier
+
+    @staticmethod
+    def result(value: Union[int, float]) -> Union[int, float]:
+        rounded_value = RoundingMethod.round_away_from_zero(value)
+        if rounded_value == int(rounded_value):
+            return int(rounded_value)
         else:
-            return str(result)
+            return rounded_value
