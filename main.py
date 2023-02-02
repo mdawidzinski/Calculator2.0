@@ -1,3 +1,4 @@
+import sys
 from tkinter import *
 from tkinter import messagebox
 from RoundingMethod import RoundingMethod
@@ -16,38 +17,38 @@ class Calculator:
         self.result_font = ('Arial', '16')
         self.arrow_image = PhotoImage(file='back_arrow.png')
 
-        self.proces = ''
-        self.equal_pressed = False
-        self.e_notation = False
+        self.proces = ''  # variable for holding all inputs
+        self.equal_pressed = False  # check if result() was executed
+        self.e_notation = False  # check if result() was executed and e notation was used
 
-        self.display_frame = Frame(bg=self.gui_color)
+        self.display_frame = Frame(bg=self.gui_color)  # frame to display calculation and result
         self.display_frame.pack(expand=True, fill=BOTH)
 
         self.proces_text = Text(self.display_frame, bg=self.gui_color, font=self.button_font, height=1, wrap=WORD,
-                                width=45)
+                                width=45)  # main widget for calculation display
         self.proces_text.grid(row=0, column=0, columnspan=8, sticky='NEWS')
 
         self.result_label = Label(self.display_frame, text=self.proces, bg=self.gui_color, font=self.result_font,
-                                  anchor=E)
+                                  anchor=E)  # label for result display
         self.result_label.grid(row=1, column=1, columnspan=6, sticky='NEWS')
 
         self.clear_button = Button(self.display_frame, text='C', bg=self.gui_color, font=self.button_font,
-                                   borderwidth=0, command=self.clear)
+                                   borderwidth=0, command=self.clear) # button for clearing previous widgets
         self.clear_button.grid(row=1, column=0, sticky='W')
 
         self.back_button = Button(self.display_frame, image=self.arrow_image, activebackground=self.gui_color,
                                   bg=self.gui_color, borderwidth=0, font=self.button_font, command=self.back)
-        self.back_button.grid(row=1, column=7, sticky='E')
+        self.back_button.grid(row=1, column=7, sticky='E')  # button that remove last inputted value or clear everything when  self.e_notation = True
 
-        self.button_frame = Frame(bg=self.gui_color)
+        self.button_frame = Frame(bg=self.gui_color) # frame for buttons
         self.button_frame.pack(expand=True, fill=BOTH)
 
-        self.buttons_list = {7 : '7', 8 : '8', 9 : '9', '\u00F7' : '/',
+        self.buttons_list = {7 : '7', 8 : '8', 9 : '9', '\u00F7' : '/',  # button dictionary used for button creation and key binding
                              4 : '4', 5 : '5', 6 : '6', '\u00D7' : '*' ,
                              1 : '1', 2 : '2', 3 : '3', '-' : '-',
                              0 : '0', '.' : '.', '=' : '=', '+' : '+'}
 
-        self.operators = {'/': '\u00F7', '*': '\u00D7'}
+        self.operators = {'/': '\u00F7', '*': '\u00D7'}  # button dictionary used for replace signs in proces_text
 
         self.create_buttons()
         self.grid_configure(self.display_frame)
@@ -55,30 +56,32 @@ class Calculator:
         self.key_binding()
 
     @staticmethod
-    def grid_configure(frame):
-        columns, rows = frame.grid_size()
+    def grid_configure(frame):  # function allows to configure widget weight inside of frame.
+        columns, rows = frame.grid_size()  # frame.grid_size() automatically check how any rows and column is in frame
         for i in range(rows):
             frame.rowconfigure(i, weight=1)
         for i in range(columns):
             frame.columnconfigure(i, weight=1)
 
-    def key_binding(self):
+    def key_binding(self):  # key binding function
         self.root.bind('<Return>', lambda event: self.result())
         self.root.bind('<BackSpace>', lambda event: self.back())
+        self.root.bind('<Escape>', lambda event: sys.exit())
         for key in self.buttons_list:
             self.root.bind(str(key), lambda event, digit=key: self.click(str(digit)))
 
-    def update_proces_text(self):
+    def update_proces_text(self): # function used to update proces_text
         expression = self.proces
-        for operator, symbol in self.operators.items():
+        for operator, symbol in self.operators.items(): # conversion operators / and * to unicode symbols
             expression = expression.replace(operator, f'{symbol}')
+        '''commands bellow are used to input text from right to left'''
         self.proces_text.delete(1.0, END)
         self.proces_text.insert(END, expression)
         self.proces_text.tag_configure('right', justify='right')
         self.proces_text.tag_add('right', '1.0', 'end')
 
     @staticmethod
-    def result_length_limit(value: str) -> bool:
+    def result_length_limit(value: str) -> bool:  # check if operation result is longer than space in result_label
         if len(value) > 12 and '.' not in value:
             return True
         elif len(value) > 13 and '.' in value:
@@ -86,27 +89,27 @@ class Calculator:
         else:
             return False
 
-    def to_scientific_notation(self, value: str) ->str:
+    def to_scientific_notation(self, value: str) ->str:  # function that convert result to e notation with 2 decimal paces
         if self.result_length_limit(value):
             self.e_notation = True
             return '{:.2e}'.format(int(value))
         else:
             return value
 
-    def add_value(self, val):
+    def add_value(self, val):  # adding value to self.proces and proces_text
         self.proces += val
         self.update_proces_text()
         self.equal_pressed = False
 
-    def find_last_math_sign(self) -> Union[int, None]:
+    def find_last_math_sign(self) -> Union[int, None]:  # check for index of last math sign or return None
         i = len(self.proces) - 1
         while i >= 0:
-            if self.proces[i] in "+-*/%":
+            if self.proces[i] in "+-*/":
                 return i
             i -= 1
         return None
 
-    def leading_zero_check(self) -> bool:
+    def leading_zero_check(self) -> bool:  # leading zero checker
         if len(self.proces) == 1 and self.proces[0] == '0':
             return True
         index = self.find_last_math_sign()
@@ -116,19 +119,19 @@ class Calculator:
         if z == 1 and self.proces[index + 1] == '0':
             return True
 
-    def operational_change(self, val):
+    def operational_change(self, val):  # allowing change sign, eg. from + to -
         self.proces = self.proces[:-1]
         self.add_value(val)
 
-    def add_number(self, value):
-        if self.equal_pressed or self.e_notation:
-            self.clear()
+    def add_number(self, value):  # adding number to self.proces and proces_text.
+        if self.equal_pressed:
+            self.clear()  # clearing everything when statement is True.
         else:
-            if self.leading_zero_check():
+            if self.leading_zero_check():  # remove leading zero
                 self.proces = self.proces[:-1]
         self.add_value(value)
 
-    def add_dot(self,val):
+    def add_dot(self,val):   # adding dot to a number
         if not self.proces:
             return
         index = self.find_last_math_sign()
@@ -139,9 +142,9 @@ class Calculator:
         if val not in expression and self.proces[-1].isdigit():
             self.add_value(val)
 
-    def result(self):
+    def result(self):  # function that trigger after pressing =
         if self.proces and self.proces[-1].isdigit():
-            try:
+            try:  # divide by zero error check
                 expression = str(RoundingMethod().result(eval(self.proces)))
                 self.proces = self.to_scientific_notation(expression)
                 self.result_label.config(text=self.proces)
@@ -150,16 +153,16 @@ class Calculator:
             except ZeroDivisionError:
                 messagebox.showerror('Division Error', 'Cannot divide by zero')
 
-    def add_operation(self,value):
-        if not self.proces:
+    def add_operation(self,value): # function that handle math sign input
+        if not self.proces:  # allowing - as first input
             if value == '-':
                 self.operational_change(value)
             else:
                 return
         if self.proces[-1].isdigit():
-            try:
+            try: # divide by zero error check
                 expression = str(RoundingMethod().result(eval(self.proces)))
-                self.result_label.config(text=self.to_scientific_notation(expression))
+                self.result_label.config(text=self.to_scientific_notation(expression))  # result_label update
                 self.proces += value
                 self.update_proces_text()
                 self.equal_pressed = False
@@ -167,12 +170,12 @@ class Calculator:
             except ZeroDivisionError:
                 messagebox.showerror('Division Error', 'Cannot divide by zero')
         else:
-            if len(self.proces) == 1:
+            if len(self.proces) == 1: # block operational_change when there is only - in self.proces
                 return
             else:
                 self.operational_change(value)
 
-    def click(self, val):
+    def click(self, val):  # handle input from keys
         if val.isdigit():
             self.add_number(val)
         elif val == '.':
@@ -182,21 +185,21 @@ class Calculator:
         else:
             self.add_operation(val)
 
-    def back(self):
-        if self.e_notation:
+    def back(self):  # removing last value
+        if self.e_notation: # clearing everything when e_notation = True, this prevents errors.
             return self.clear()
         self.proces = self.proces[:-1]
         self.update_proces_text()
         self.equal_pressed = False
 
-    def clear(self):
+    def clear(self):  # clearing eveyrhing and set both self.equal_pressed and self.e_notation to false
         self.proces = ''
         self.proces_text.delete(1.0, END)
         self.result_label.config(text=self.proces)
         self.equal_pressed = False
         self.e_notation = False
 
-    def create_buttons(self):
+    def create_buttons(self):  # creating all buttons at the same time
         _ = 0
         for symbol, operator in self.buttons_list.items():
             button = Button(self.button_frame, text=symbol, bg=self.gui_color, font=self.button_font, borderwidth=0,
