@@ -118,10 +118,8 @@ class Calculator:
         index = self.find_last_math_sign()
         if index is None:
             return False
-        z = len(self.process[index + 1:])
-        if z == 1 and self.process[index + 1] == '0':
-            return True
-        # TODO What to do in else situation
+        process_length = len(self.process[index + 1:])
+        return process_length == 1 and self.process[index + 1] == '0'
 
     def operational_change(self, val):  # allowing change sign, eg. from + to -
         self.process = self.process[:-1]
@@ -145,7 +143,8 @@ class Calculator:
             expression = self.process[index + 1]
         if val not in expression and self.process[-1].isdigit():
             self.add_value(val)
-        # TODO What to do in else situation
+        else:
+            pass
 
     def result(self):  # function that trigger after pressing =
         if self.process and self.process[-1].isdigit():
