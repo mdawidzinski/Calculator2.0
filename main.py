@@ -25,8 +25,8 @@ class Calculator:
         self.display_frame = Frame(bg=self.gui_color)  # frame to display calculation and result
         self.display_frame.pack(expand=True, fill=BOTH)
 
-        self.process_text = Text(self.display_frame, bg=self.gui_color, font=self.button_font, height=1, wrap=WORD,
-                                 width=45)  # main widget for calculation display
+        self.process_text = Text(self.display_frame, bg=self.gui_color, font=self.button_font, height=2, wrap=WORD,
+                                 width=45, state=DISABLED)  # main widget for calculation display
         self.process_text.grid(row=0, column=0, columnspan=8, sticky='NEWS')
 
         self.result_label = Label(self.display_frame, text=self.process, bg=self.gui_color, font=self.result_font,
@@ -72,7 +72,8 @@ class Calculator:
         for key in self.buttons_list:
             self.root.bind(str(key), lambda event, digit=key: self.click(str(digit)))
 
-    def update_process_text(self):  # function used to update proces_text
+    def update_process_text(self):  # function used to update process_text
+        self.process_text.config(state=NORMAL)
         expression = self.process
         for operator, symbol in self.operators.items():  # conversion operators / and * to unicode symbols
             expression = expression.replace(operator, f'{symbol}')
@@ -81,6 +82,7 @@ class Calculator:
         self.process_text.insert(END, expression)
         self.process_text.tag_configure('right', justify='right')
         self.process_text.tag_add('right', '1.0', 'end')
+        self.process_text.config(state=DISABLED)
 
     @staticmethod
     def result_length_limit(value: str) -> bool:  # check if operation result is longer than space in result_label
@@ -92,14 +94,14 @@ class Calculator:
             return False
 
     def to_scientific_notation(self, value: str) -> str:
-        """Function that convert result to e notation with 2 decimal paces"""
+        """Function that convert result to e notation with 2 decimal places"""
         if self.result_length_limit(value):
             self.e_notation = True
             return '{:.2e}'.format(int(value))
         else:
             return value
 
-    def add_value(self, val):  # adding value to self.proces and proces_text
+    def add_value(self, val):  # adding value to self.process and process_text
         self.process += val
         self.update_process_text()
         self.equal_pressed = False
@@ -125,7 +127,7 @@ class Calculator:
         self.process = self.process[:-1]
         self.add_value(val)
 
-    def add_number(self, value):  # adding number to self.proces and proces_text.
+    def add_number(self, value):  # adding number to self.proces and process_text.
         if self.equal_pressed:
             self.clear()  # clearing everything when statement is True.
         else:
@@ -137,10 +139,7 @@ class Calculator:
         if not self.process:
             return
         index = self.find_last_math_sign()
-        if index is None:
-            expression = self.process
-        else:
-            expression = self.process[index + 1]
+        expression = self.process[index:]
         if val not in expression and self.process[-1].isdigit():
             self.add_value(val)
         else:
@@ -174,7 +173,7 @@ class Calculator:
             except ZeroDivisionError:
                 messagebox.showerror('Division Error', 'Cannot divide by zero')
         else:
-            if len(self.process) == 1:  # block operational_change when there is only - in self.proces
+            if len(self.process) == 1:  # block operational_change when there is only - in self.process
                 return
             else:
                 self.operational_change(value)
@@ -197,9 +196,11 @@ class Calculator:
         self.equal_pressed = False
 
     def clear(self):  # clearing everything and set both self.equal_pressed and self.e_notation to false
+        self.process_text.config(state=NORMAL)
         self.process = ''
         self.process_text.delete(1.0, END)
         self.result_label.config(text=self.process)
+        self.process_text.config(state=DISABLED)
         self.equal_pressed = False
         self.e_notation = False
 
