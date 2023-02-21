@@ -29,6 +29,7 @@ A simple and intuitive calculator implementation in Python
   Please feel free to submit pull requests if you have any improvements or fixes to suggest.
 
   Marek Dawidziński
+  
   Agnieszka Trzcińska <agnieszka.aga.trzcinska@gmail.com>
 
 ### License
