@@ -97,7 +97,7 @@ class Calculator:
         """Function that convert result to e notation with 2 decimal places"""
         if self.result_length_limit(value):
             self.e_notation = True
-            return '{:.2e}'.format(int(value))
+            return '{:.2e}'.format(float(value))
         else:
             return value
 
